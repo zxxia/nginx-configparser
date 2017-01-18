@@ -10,6 +10,7 @@ TEST(NginxConfigParserTest, SimpleConfig) {
   EXPECT_TRUE(success);
 }
 
+// test fixture used in following test
 class NginxConfigParser_Test:public::testing::Test{
 protected:
 	NginxConfig out_config;
@@ -20,6 +21,8 @@ protected:
 	}
 };
 
+
+// a simple configuration test
 TEST_F(NginxConfigParser_Test, SimpleConfig) {
 	EXPECT_TRUE(parse_test_str("foo bar;"));
 	EXPECT_EQ(1, out_config.statements_.size());
@@ -28,36 +31,46 @@ TEST_F(NginxConfigParser_Test, SimpleConfig) {
 	EXPECT_EQ("bar", out_config.statements_[0]->tokens_[1]);
 }
 
+// test unbalanced curly brackets(no end brackets)
 TEST_F(NginxConfigParser_Test, UnbalancedBlock1) {
 	EXPECT_FALSE(parse_test_str("server\n{ foo bar;"));
 }
 
+
+// test unbalanced curly brackets(no beginning brackets)
 TEST_F(NginxConfigParser_Test, UnbalancedBlock2) {
 	EXPECT_FALSE(parse_test_str("server\nfoo bar; }"));
 }
 
+// test invalid configuration expression e.g. no semicolon
 TEST_F(NginxConfigParser_Test, InvalidExpr) {
 	EXPECT_FALSE(parse_test_str("foo bar"));
 }
 
+// test comment in configuration expression
 TEST_F(NginxConfigParser_Test, Comment) {
 	EXPECT_TRUE(parse_test_str("foo bar; # This is a comment"));
 	EXPECT_EQ(1, out_config.statements_.size());
 	EXPECT_EQ(2, out_config.statements_[0]->tokens_.size());
 }
 
+// test nested curly brackets
 TEST_F(NginxConfigParser_Test, NestedBlock) {
 	EXPECT_TRUE(parse_test_str("foobar {server; \nListen 80;\n name {abcd;}\n root {foobar;}}"));
 }
 
+
+// test flipped order of curly brackets
 TEST_F(NginxConfigParser_Test, flippedBrackets) {
 	EXPECT_FALSE(parse_test_str("}sever \n listen 80;{"));
 }
 
+// test no expression before semicolon
 TEST_F(NginxConfigParser_Test, independentSemicolon){
 	EXPECT_FALSE(parse_test_str("foo;\n;\nbar;"));
 }
 
+// test odd number of double quotes
 TEST_F(NginxConfigParser_Test, oddDoubleQuote){
 	EXPECT_FALSE(parse_test_str("foo;\n \"\"bar;\";"));
 }
